@@ -2,4 +2,4 @@
 
 ## Circuit
 
-<img src="index.png">
+<img src="idex.png">

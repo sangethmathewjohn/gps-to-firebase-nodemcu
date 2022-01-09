@@ -1,0 +1,56 @@
+#include <TinyGPS++.h> // library for GPS module
+#include <SoftwareSerial.h>
+#include <ESP8266WiFi.h>
+
+#include <FirebaseArduino.h>
+
+#define FIREBASE_HOST "b-a-t-system.firebaseio.com"
+#define FIREBASE_AUTH "LJ2YAext0crJjwitAk5ldfGcg1jfYW77s29rizC5"
+
+TinyGPSPlus gps;  // The TinyGPS++ object
+SoftwareSerial ss(4, 5); // DATA PIN 2,1
+const char* ssid = "keylogger"; //ssid of your wifi
+const char* password = "keylogger"; //password of your wifi
+float latitude , longitude;
+
+
+void setup()
+{
+  Serial.begin(115200);
+  ss.begin(9600);
+  Serial.println();
+  Serial.print("Connecting to ");
+  Serial.println(ssid);
+  WiFi.begin(ssid, password);
+  //connecting to wifi
+  while (WiFi.status() != WL_CONNECTED)// while wifi not connected
+  {
+    delay(500);
+    Serial.print("."); //print "...."
+  }
+  Serial.println("");
+  Serial.println("WiFi connected");
+  
+  Firebase.begin(FIREBASE_HOST, FIREBASE_AUTH);  
+}
+
+
+void loop()
+{
+  while (ss.available() > 0) //while data is available
+    if (gps.encode(ss.read())) //read gps data
+    {
+      if (gps.location.isValid()) //check whether gps location is valid
+      {
+        latitude = gps.location.lat(); // latitude location is stored in a string
+        longitude = gps.location.lng(); //longitude location is stored in a string
+      }
+     Firebase.setFloat("WcnxbWCFzpQMJC9cy4fJQjUoxCm1/Variables/latitude", latitude);
+     
+     Firebase.setFloat("WcnxbWCFzpQMJC9cy4fJQjUoxCm1/Variables/longitude", longitude);
+      // handle error
+      if (Firebase.failed()) {
+      Serial.print("setting /number failed:");
+      Serial.println(Firebase.error()); 
+    }}
+}
